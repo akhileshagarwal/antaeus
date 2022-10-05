@@ -16,12 +16,12 @@ private val logger = KotlinLogging.logger {}
 private val thisFile: () -> Unit = {}
 
 class AntaeusRest(
-    private val invoiceService: InvoiceService,
-    private val customerService: CustomerService
-) : Runnable {
+    invoiceService: InvoiceService,
+    customerService: CustomerService
+) {
 
-    override fun run() {
-        app.start(7000)
+    fun run() {
+        app.start(7001)
     }
 
     // Set up Javalin rest app
@@ -52,34 +52,9 @@ class AntaeusRest(
                 get("health") {
                     it.json("ok")
                 }
-
-                // V1
-                path("v1") {
-                    path("invoices") {
-                        // URL: /rest/v1/invoices
-                        get {
-                            it.json(invoiceService.fetchAll())
-                        }
-
-                        // URL: /rest/v1/invoices/{:id}
-                        get(":id") {
-                            it.json(invoiceService.fetch(it.pathParam("id").toInt()))
-                        }
-                    }
-
-                    path("customers") {
-                        // URL: /rest/v1/customers
-                        get {
-                            it.json(customerService.fetchAll())
-                        }
-
-                        // URL: /rest/v1/customers/{:id}
-                        get(":id") {
-                            it.json(customerService.fetch(it.pathParam("id").toInt()))
-                        }
-                    }
-                }
             }
         }
+        CustomerRest(app, customerService)
+        InvoiceRest(app, invoiceService)
     }
 }

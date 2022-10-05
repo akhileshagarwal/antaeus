@@ -46,7 +46,7 @@ If you use homebrew on MacOS `brew install sqlite`.
 Install docker for your platform
 
 ```
-docker build -t antaeus
+docker build -t antaeus .
 docker run antaeus
 ```
 
@@ -86,3 +86,22 @@ The code given is structured as follows. Feel free however to modify the structu
 * [Sqlite3](https://sqlite.org/index.html) - Database storage engine
 
 Happy hacking 😁!
+
+### My Changes & Thoughts for the time I worked on this project!!!!
+
+* Day 1 (06 October 2022): 
+  * Tried to understand the project architecture.
+  * Configure the service locally.
+  * Small refactoring.
+  * I'm new to kotlin so also looked into basic constructs of the language.
+  * Thoughts:
+    * The payment service should be altogether a separate service which consumes all the payment events being published on a topic but for the simplicity of 
+      this challenge I am not going that route.
+    * To make this scheduler perform well, it's really important that all the unpaid invoices for a particular month should be distributed between different 
+      nodes in a cluster in batches.
+    * Proper Error handling is required while calling the external payment provider.
+    * Retry logic to handle network related issues.
+    * Need to have a dead letter queue type of, a separate table in this case, which also contains the reason for the failure.
+
+  For now, this is what I can think of. Maybe something else comes up in the future.
+    
