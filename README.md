@@ -103,5 +103,24 @@ Happy hacking 😁!
     * Retry logic to handle network related issues.
     * Need to have a dead letter queue type of, a separate table in this case, which also contains the reason for the failure.
 
-  For now, this is what I can think of. Maybe something else comes up in the future.
+* Day 2 (08 October 2022)
+  * Started with thinking about how the dead letter queue should look like in case any failures occurs while charging the invoice.
+  * Normally, it should be a messaging queue when we have a messaging framework driven architecture. Since, that's not the case I thought of introducing a 
+    new InvoiceDLQ table which will contain all the Invoices' id's which failed on the first try and the reason for the failure.
+  * I also introduced two new Invoice statuses namely, IN_PROGRESS & FAILED to make it very clear about the state of the invoice.
+    * IN_PROGRESS -> 
+      * means that some node has picked up the invoice and is working on trying to settle it. So, no other node picks it up.
+      * It might be that while settling the invoice it resulted in some error, then the invoice will stay in this status until all the retries are 
+        exhausted.
+    * FAILED ->
+      * Either all the retires are exhausted or the exception is having 0 retries.
+      * Create an alert when an invoice goes to this state.
+  * Also, worked on setting up the dal layer for the new table.
+  
+* Pending tasks
+  * Introduce distributed locking mechanism preferably redis so that each node can work on a small exclusive batch of pending invoices.
+  * Add a Scheduler
+  * Handle case where the node died after putting all the invoices to IN_PROGRESS
+  * Send notification about the Failed invoices to the respective team so that it can be handled manually if possible
+  * Implement a retry logic in case of network failures
     

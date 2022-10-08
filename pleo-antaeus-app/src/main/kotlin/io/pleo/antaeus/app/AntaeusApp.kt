@@ -15,7 +15,6 @@ import io.pleo.antaeus.data.AntaeusDal
 import io.pleo.antaeus.data.CustomerTable
 import io.pleo.antaeus.data.InvoiceTable
 import io.pleo.antaeus.rest.AntaeusRest
-import mu.KotlinLogging
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.StdOutSqlLogger
@@ -62,7 +61,7 @@ fun main() {
     val customerService = CustomerService(dal = dal)
 
     // This is _your_ billing service to be included where you see fit
-    val billingService = BillingService(paymentProvider = paymentProvider)
+    val billingService = BillingService(paymentProvider = paymentProvider, invoiceService = invoiceService, customerService = customerService)
 
     // Create REST web service
     AntaeusRest(

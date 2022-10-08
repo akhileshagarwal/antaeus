@@ -19,3 +19,9 @@ object CustomerTable : Table() {
     val id = integer("id").autoIncrement().primaryKey()
     val currency = varchar("currency", 3)
 }
+
+object InvoiceDLQTable : Table() {
+    val id = integer("id").autoIncrement().primaryKey()
+    val invoiceId = reference("invoice_id", InvoiceTable.id)
+    val failureReason = text("failure_reason")
+}
