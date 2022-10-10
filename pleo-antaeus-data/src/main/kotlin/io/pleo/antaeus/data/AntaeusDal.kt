@@ -8,6 +8,7 @@
 package io.pleo.antaeus.data
 
 import io.pleo.antaeus.models.*
+import io.pleo.antaeus.models.InvoiceStatus.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -31,7 +32,37 @@ class AntaeusDal(private val db: Database) {
         }
     }
 
-    fun createInvoice(amount: Money, customer: Customer, status: InvoiceStatus = InvoiceStatus.PENDING): Invoice? {
+    fun fetchLimitedInvoicesWithStatus(count: Int, invoiceStatus: InvoiceStatus): List<Invoice> {
+        return transaction(db) {
+            InvoiceTable
+                .select { InvoiceTable.status.eq(invoiceStatus.toString()) }
+                .limit(count, offset = 1)
+                .map { it.toInvoice() }
+        }
+    }
+
+    fun updateInvoicesStatus(invoices: List<Invoice>, status: String) {
+        transaction(db) {
+            // Insert the invoice and returns its new id.
+            invoices.forEach {
+                InvoiceTable
+                    .update({ InvoiceTable.id eq it.id }) {
+                        it[this.status] = status
+                    }
+            }
+        }
+    }
+
+    fun updateInvoiceStatus(invoice: Invoice, status: String) {
+        transaction(db) {
+            InvoiceTable
+                .update({ InvoiceTable.id eq invoice.id }) {
+                    it[this.status] = status
+                }
+        }
+    }
+
+    fun createInvoice(amount: Money, customer: Customer, status: InvoiceStatus = PENDING): Invoice? {
         val id = transaction(db) {
             // Insert the invoice and returns its new id.
             InvoiceTable
@@ -51,10 +82,24 @@ class AntaeusDal(private val db: Database) {
             // Insert the invoice and returns its new id.
             InvoiceTable
                 .update({ InvoiceTable.id eq invoice.id }) {
-                    it[this.status] = InvoiceStatus.FAILED.toString()
+                    it[this.status] = FAILED.toString()
                 }
             InvoiceDLQTable
                 .deleteWhere { InvoiceDLQTable.id eq invoiceDLQ.id }
+        }
+    }
+
+    fun updateInvoiceAndCreateInvoiceDLQ(invoice: Invoice, invoiceStatus: String, failureReason: String) {
+        transaction(db) {
+            InvoiceTable
+                .update({ InvoiceTable.id eq invoice.id }) {
+                    it[this.status] = invoiceStatus
+                }
+            InvoiceDLQTable
+                .insert {
+                    it[this.invoiceId] = invoice.id
+                    it[this.failureReason] = failureReason
+                }
         }
     }
 
@@ -69,8 +114,8 @@ class AntaeusDal(private val db: Database) {
 
     fun fetchCustomers(): List<Customer> {
         return CustomerTable
-                .selectAll()
-                .map { it.toCustomer() }
+            .selectAll()
+            .map { it.toCustomer() }
     }
 
     fun createCustomer(currency: Currency): Customer? {
@@ -82,5 +127,26 @@ class AntaeusDal(private val db: Database) {
         }
 
         return fetchCustomer(id)
+    }
+
+    /**
+     * This should have been created in a separate Dal file so that
+     * we don't end up having all the database logic in one file as
+     * it becomes really hard to maintain and test the class moving forward.
+     *
+     * The same goes for existing logic in here.
+     */
+    fun fetchInvoicesDLQ(failureReason: FailureReason): List<InvoiceDLQ>? {
+        return InvoiceDLQTable
+            .select { InvoiceDLQTable.failureReason.eq(failureReason.toString()) }
+            .map { it.toInvoiceDLQ() }
+    }
+
+    fun createInvoiceDLQ(invoice: Invoice, failureReason: String) {
+        InvoiceDLQTable
+            .insert {
+                it[this.invoiceId] = invoice.id
+                it[this.failureReason] = failureReason
+            }
     }
 }

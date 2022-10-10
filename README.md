@@ -89,7 +89,7 @@ Happy hacking 😁!
 
 ### My Changes & Thoughts for the time I worked on this project!!!!
 
-* Day 1 (06 October 2022): 
+* Day 1 (06 October 2022) ~ 1 hrs excluding trying to understand kotlin
   * Tried to understand the project architecture.
   * Configure the service locally.
   * Small refactoring.
@@ -103,7 +103,7 @@ Happy hacking 😁!
     * Retry logic to handle network related issues.
     * Need to have a dead letter queue type of, a separate table in this case, which also contains the reason for the failure.
 
-* Day 2 (08 October 2022)
+* Day 2 (08 October 2022) ~ 1.5 hrs
   * Started with thinking about how the dead letter queue should look like in case any failures occurs while charging the invoice.
   * Normally, it should be a messaging queue when we have a messaging framework driven architecture. Since, that's not the case I thought of introducing a 
     new InvoiceDLQ table which will contain all the Invoices' id's which failed on the first try and the reason for the failure.
@@ -117,10 +117,21 @@ Happy hacking 😁!
       * Create an alert when an invoice goes to this state.
   * Also, worked on setting up the dal layer for the new table.
   
+* Day 3 (10 Oct 2022) ~ 2 hrs
+  * implemented the logic for handling PENDING Invoices.
+    * Every node will pick up a chunk of PENDING requests exclusively using a distributed lock(which is yet to be implemented) from the DB and mark them as 
+      IN_PROGRESS.
+    * Based on the response from the payment provider or exception thrown, the status of the invoice will be updated to PAID or FAILED respectively.
+    * Added a retry config using resilience4j.
+    * If the invoice resulted in failure then an entry is also created in InvoiceDLQ with the exact reason for which the payment failed.
+    * Added some methods in Dal to facilitate the business logic explained above.
+    
+![](img.png)
+
 * Pending tasks
   * Introduce distributed locking mechanism preferably redis so that each node can work on a small exclusive batch of pending invoices.
   * Add a Scheduler
   * Handle case where the node died after putting all the invoices to IN_PROGRESS
   * Send notification about the Failed invoices to the respective team so that it can be handled manually if possible
-  * Implement a retry logic in case of network failures
+  * Implement handlers for failures
     
