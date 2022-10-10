@@ -126,7 +126,7 @@ Happy hacking 😁!
     * If the invoice resulted in failure then an entry is also created in InvoiceDLQ with the exact reason for which the payment failed.
     * Added some methods in Dal to facilitate the business logic explained above.
     
-![](img.png)
+![](Flowchart.jpg)
 
 * Pending tasks
   * Introduce distributed locking mechanism preferably redis so that each node can work on a small exclusive batch of pending invoices.
