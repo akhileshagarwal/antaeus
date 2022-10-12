@@ -15,15 +15,14 @@ import java.time.Duration
 
 class BillingService(
     private val paymentProvider: PaymentProvider,
-    private val invoiceService: InvoiceService,
-    private val customerService: CustomerService,
-    private val invoiceDLQService: InvoiceDLQService
+    private val invoiceService: InvoiceService
 ) {
     private val log = KotlinLogging.logger {}
     private val retryConfig = RetryConfig.custom<Any>()
         .maxAttempts(3)
         .waitDuration(Duration.ofSeconds(1))
         .retryExceptions(NetworkException::class.java)
+        .failAfterMaxAttempts(true)
         .build()
     private val retry = RetryRegistry.of(retryConfig).retry("payment-retry")
 

@@ -126,6 +126,10 @@ Happy hacking 😁!
     * If the invoice resulted in failure then an entry is also created in InvoiceDLQ with the exact reason for which the payment failed.
     * Added some methods in Dal to facilitate the business logic explained above.
     
+* Day 4 (12 Oct 2022) ~ 1 hr
+  * Added Test cases for Billing Service
+  * Added InvoiceDLQ table to be created on startup
+    
 ![](Flowchart.jpg)
 
 * Pending tasks
