@@ -7,17 +7,21 @@ import io.pleo.antaeus.core.exceptions.CurrencyMismatchException
 import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
 import io.pleo.antaeus.core.exceptions.NetworkException
 import io.pleo.antaeus.core.external.PaymentProvider
+import io.pleo.antaeus.core.lock.DistributedLocks
 import io.pleo.antaeus.models.FailureReason.*
 import io.pleo.antaeus.models.Invoice
 import io.pleo.antaeus.models.InvoiceStatus.*
 import mu.KotlinLogging
 import java.time.Duration
+import java.util.*
 
 class BillingService(
     private val paymentProvider: PaymentProvider,
-    private val invoiceService: InvoiceService
+    private val invoiceService: InvoiceService,
+    private val distributedLocks: DistributedLocks
 ) {
     private val log = KotlinLogging.logger {}
+    private val lockKey = "billing-lock"
     private val retryConfig = RetryConfig.custom<Any>()
         .maxAttempts(3)
         .waitDuration(Duration.ofSeconds(1))
@@ -62,10 +66,18 @@ class BillingService(
     }
 
     private fun fetchPendingInvoicesAndUpdateStatusToInProgress(): List<Invoice>{
-        //Acquire Lock
+        val lockIdentifier = UUID.randomUUID().toString()
+        val lockDuration = Duration.ofMillis(2000)
+        val acquireTimeout = Duration.ofMillis(500)
+        var isSuccessful = false
+        while(!isSuccessful){
+            isSuccessful = distributedLocks.tryLockWithTimeout(lockKey, lockDuration, acquireTimeout, lockIdentifier)
+        }
+
         val pendingInvoices = invoiceService.fetchLimitedInvoicesByStatus(PENDING)
         invoiceService.updateInvoicesStatus(pendingInvoices, IN_PROGRESS)
-        //Release Lock
+
+        distributedLocks.releaseLock(lockKey, lockIdentifier)
         return pendingInvoices
     }
 

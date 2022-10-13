@@ -129,11 +129,16 @@ Happy hacking 😁!
 * Day 4 (12 Oct 2022) ~ 1 hr
   * Added Test cases for Billing Service
   * Added InvoiceDLQ table to be created on startup
+* Day 5 (13 Oct 2022) ~ 2 hr
+  * Add redis to docker-compose
+  * Introduce logic to acquire and release locks while fetching pending invoices.
+  * In production the redis will be shared across all the antaeus nodes running in a cluster.
+
     
 ![](Flowchart.jpg)
 
 * Pending tasks
-  * Introduce distributed locking mechanism preferably redis so that each node can work on a small exclusive batch of pending invoices.
+  * Introduce distributed locking mechanism preferably redis so that each node can work on a small exclusive batch of pending invoices. DONE
   * Add a Scheduler
   * Handle case where the node died after putting all the invoices to IN_PROGRESS
   * Send notification about the Failed invoices to the respective team so that it can be handled manually if possible

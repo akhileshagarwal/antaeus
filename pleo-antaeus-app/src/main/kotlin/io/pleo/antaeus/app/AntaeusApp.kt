@@ -8,6 +8,8 @@
 package io.pleo.antaeus.app
 
 import getPaymentProvider
+import io.pleo.antaeus.core.lock.DistributedLocks
+import io.pleo.antaeus.core.lock.RedisLockProvider
 import io.pleo.antaeus.core.services.BillingService
 import io.pleo.antaeus.core.services.CustomerService
 import io.pleo.antaeus.core.services.InvoiceService
@@ -54,6 +56,10 @@ fun main() {
     // Insert example data in the database.
     setupInitialData(dal = dal)
 
+    //Create Redis Lock Pool. The host URL should come from config file.
+    val redisLockProvider = RedisLockProvider("localhost:6379")
+    val distributedLocks = DistributedLocks(redisLockProvider)
+
     // Get third parties
     val paymentProvider = getPaymentProvider()
 
@@ -62,7 +68,9 @@ fun main() {
     val customerService = CustomerService(dal = dal)
 
     // This is _your_ billing service to be included where you see fit
-    val billingService = BillingService(paymentProvider = paymentProvider, invoiceService = invoiceService)
+    val billingService = BillingService(paymentProvider = paymentProvider,
+                                        invoiceService = invoiceService,
+                                        distributedLocks = distributedLocks)
 
     // Create REST web service
     AntaeusRest(

@@ -1,0 +1,23 @@
+version: '3.4'
+
+networks:
+  antaeus-network:
+    driver: bridge
+
+services:
+  redis:
+    image: 'bitnami/redis:latest'
+    ports:
+      - '6379:6379'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL,CONFIG
+    command: /opt/bitnami/scripts/redis/run.sh --maxmemory 100mb
+    networks:
+      - antaeus-network
+  antaeus_application:
+    image: 'antaeus'
+    ports:
+      - '7001:7001'
+    networks:
+      - antaeus-network
