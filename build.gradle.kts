@@ -5,6 +5,8 @@ plugins {
     kotlin("jvm") version "1.3.70" apply false
 }
 
+defaultTasks("clean", "build")
+
 allprojects {
     group = "io.pleo"
     version = "1.0"

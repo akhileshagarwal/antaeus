@@ -4,6 +4,7 @@ import mu.KotlinLogging
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.Transaction
+import redis.clients.jedis.exceptions.JedisConnectionException
 import redis.clients.jedis.exceptions.JedisException
 import java.time.Duration
 import java.util.*
@@ -14,10 +15,14 @@ class RedisLock(private val host: String, private val port: Int): LockProvider<J
 
     override fun lockPool(): Jedis{
         if (lockPool == null) {
-            log.info("Establishing redis lock pool connection")
+            log.info("Establishing redis lock pool connection with $host:$port")
             lockPool = JedisPool(host, port)
         }
-        return lockPool!!.resource
+        try {
+            return lockPool!!.resource
+        }catch (e: JedisConnectionException){
+            throw e
+        }
     }
 
     override fun tryLockWithTimeout(lockKey: String, lockDuration: Duration, acquireTimeout: Duration, lockIdentifier: String?): Boolean{

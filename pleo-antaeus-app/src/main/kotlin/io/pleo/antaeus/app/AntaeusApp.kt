@@ -59,7 +59,7 @@ fun main() {
     setupInitialData(dal = dal)
 
     //Create Redis Lock Pool. The host URL should come from config file.
-    val redisLock = RedisLock("localhost", 6379)
+    val redisLock = RedisLock("redis", 6379)
 
     // Get third parties
     val paymentProvider = getPaymentProvider()

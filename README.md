@@ -148,12 +148,41 @@ Happy hacking 😁!
 
 * Day 6(16 Oct 2022) Iteration 3 ~ 2.5 hrs
   * Added Handlers which can handle payments that failed and take necessary action.
+  * Also added is_handled column for InvoiceDLQ so that no two nodes pick up the same Failed Payment
   * Improved mocked external PaymentProvider to throw exceptions as well.
   * Added job and rest endpoint to handle failed payments
 
-* Pending tasks
+* IMPORTANT THINGS WHICH ARE STILL LEFT TODO
   * Handle case where the node died after putting all the invoices to IN_PROGRESS
   * Integration tests are missing due to limited time as I am having a lot of stuff going in my current office. But We can use test containers to test the app 
     as I have shown for testing redis locks
   * There are some scenarios which needs business input. So, I have ignored them for now.
+  
+* Steps to run
+  * In the terminal run
+    ```
+    ./gradlew && ./docker-start.sh
+    ```
+    * This will build the jar and spin up the containers for redis and antaeus application 
+  * Important Curls
+    * Initiate Settling of Invoices
+      ```
+      curl --request POST --url http://localhost:7001/rest/v1/billing
+      ```
+    * Fetch PENDING/FAILED/PAID Invoices
+      ```
+      curl --request GET --url 'http://localhost:7001/rest/v1/invoices?status=FAILED'
+      ```
+    * Initiate Handling the Failed Invoices
+      ```
+      curl --request POST --url http://localhost:7001/rest/v1/invoices-dlq
+      ```
+    * Fetch Failed Invoices
+      ```
+      curl --request GET --url 'http://localhost:7001/rest/v1/invoices-dlq?failureReason=INSUFFICIENT_FUNDS'
+      ```
+  * To clean the containers and images
+      ```
+      ./docker-clean.sh
+      ```
     

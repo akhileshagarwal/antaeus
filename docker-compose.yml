@@ -16,8 +16,10 @@ services:
     networks:
       - antaeus-network
   antaeus_application:
-    image: 'antaeus'
+    image: 'pleo-antaeus'
     ports:
       - '7001:7001'
     networks:
       - antaeus-network
+    depends_on:
+      - redis

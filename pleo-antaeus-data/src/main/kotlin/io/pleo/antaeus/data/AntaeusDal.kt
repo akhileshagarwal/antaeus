@@ -133,9 +133,11 @@ class AntaeusDal(private val db: Database) {
      * The same goes for existing logic in here.
      */
     fun fetchInvoicesDLQ(failureReason: FailureReason): List<InvoiceDLQ> {
-        return InvoiceDLQTable
-            .select { InvoiceDLQTable.failureReason.eq(failureReason.toString()) }
-            .map { it.toInvoiceDLQ() }
+        return transaction(db) {
+            InvoiceDLQTable
+                .select { InvoiceDLQTable.failureReason.eq(failureReason.toString()) }
+                .map { it.toInvoiceDLQ() }
+        }
     }
 
     fun updateInvoiceDLQIsHandled(invoiceDLQ: InvoiceDLQ, isHandled: Boolean) {
