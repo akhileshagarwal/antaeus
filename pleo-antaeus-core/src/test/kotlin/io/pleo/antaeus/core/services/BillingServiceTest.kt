@@ -7,7 +7,7 @@ import io.pleo.antaeus.core.exceptions.CurrencyMismatchException
 import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
 import io.pleo.antaeus.core.exceptions.NetworkException
 import io.pleo.antaeus.core.external.PaymentProviderImpl
-import io.pleo.antaeus.core.lock.DistributedLocks
+import io.pleo.antaeus.core.lock.RedisLock
 import io.pleo.antaeus.models.*
 import io.pleo.antaeus.models.FailureReason.*
 import io.pleo.antaeus.models.InvoiceStatus.*
@@ -21,15 +21,15 @@ class BillingServiceTest {
 
     private val invoiceService = mockk<InvoiceService>()
     private val paymentProvider = mockk<PaymentProviderImpl>()
-    private val distributedLocks = mockk<DistributedLocks>()
+    private val redisLock = mockk<RedisLock>()
 
-    private val billingService = BillingService(paymentProvider, invoiceService, distributedLocks)
+    private val billingService = BillingService(paymentProvider, invoiceService, redisLock)
 
     @BeforeEach
     fun setup(){
         every { invoiceService.updateInvoicesStatus(listOf(), IN_PROGRESS) } returns Unit
-        every { distributedLocks.tryLockWithTimeout(any(), any(), any(), any()) } returns true
-        every { distributedLocks.releaseLock(any(), any()) } returns true
+        every { redisLock.tryLockWithTimeout(any(), any(), any(), any()) } returns true
+        every { redisLock.releaseLock(any(), any()) } returns true
     }
 
     @Test

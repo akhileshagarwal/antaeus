@@ -7,7 +7,7 @@ import io.pleo.antaeus.core.exceptions.CurrencyMismatchException
 import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
 import io.pleo.antaeus.core.exceptions.NetworkException
 import io.pleo.antaeus.core.external.PaymentProvider
-import io.pleo.antaeus.core.lock.DistributedLocks
+import io.pleo.antaeus.core.lock.LocksHandler
 import io.pleo.antaeus.models.FailureReason.*
 import io.pleo.antaeus.models.Invoice
 import io.pleo.antaeus.models.InvoiceStatus.*
@@ -18,7 +18,7 @@ import java.util.*
 class BillingService(
     private val paymentProvider: PaymentProvider,
     private val invoiceService: InvoiceService,
-    private val distributedLocks: DistributedLocks
+    private val locksHandler: LocksHandler
 ) {
     private val log = KotlinLogging.logger {}
     private val lockKey = "billing-lock"
@@ -71,13 +71,13 @@ class BillingService(
         val acquireTimeout = Duration.ofMillis(500)
         var isSuccessful = false
         while(!isSuccessful){
-            isSuccessful = distributedLocks.tryLockWithTimeout(lockKey, lockDuration, acquireTimeout, lockIdentifier)
+            isSuccessful = locksHandler.tryLockWithTimeout(lockKey, lockDuration, acquireTimeout, lockIdentifier)
         }
 
         val pendingInvoices = invoiceService.fetchLimitedInvoicesByStatus(PENDING)
         invoiceService.updateInvoicesStatus(pendingInvoices, IN_PROGRESS)
 
-        distributedLocks.releaseLock(lockKey, lockIdentifier)
+        locksHandler.releaseLock(lockKey, lockIdentifier)
         return pendingInvoices
     }
 

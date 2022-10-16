@@ -12,4 +12,7 @@ dependencies {
     // https://mvnrepository.com/artifact/redis.clients/jedis
     implementation("redis.clients:jedis:4.2.3")
 
+    testImplementation("org.testcontainers:junit-jupiter:1.17.5")
+    testImplementation("org.testcontainers:testcontainers:1.17.5")
+
 }

@@ -125,20 +125,24 @@ Happy hacking 😁!
     * Added a retry config using resilience4j.
     * If the invoice resulted in failure then an entry is also created in InvoiceDLQ with the exact reason for which the payment failed.
     * Added some methods in Dal to facilitate the business logic explained above.
-    
+        
+![](Flowchart.jpg)
+
 * Day 4 (12 Oct 2022) ~ 1 hr
   * Added Test cases for Billing Service
   * Added InvoiceDLQ table to be created on startup
+
 * Day 5 (13 Oct 2022) ~ 2 hr
   * Add redis to docker-compose
   * Introduce logic to acquire and release locks while fetching pending invoices.
   * In production the redis will be shared across all the antaeus nodes running in a cluster.
 
-    
-![](Flowchart.jpg)
-
+* Day 6(16 Oct 2022) ~ 1 hr
+  * Refactor Redis Lock implementation
+  * Add test cases for RedisLock class
+  * Introduce endpoint to initiate the settleInvoice
+  
 * Pending tasks
-  * Introduce distributed locking mechanism preferably redis so that each node can work on a small exclusive batch of pending invoices. DONE
   * Add a Scheduler
   * Handle case where the node died after putting all the invoices to IN_PROGRESS
   * Send notification about the Failed invoices to the respective team so that it can be handled manually if possible
