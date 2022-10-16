@@ -27,6 +27,6 @@ fun ResultRow.toCustomer(): Customer = Customer(
 fun ResultRow.toInvoiceDLQ(): InvoiceDLQ = InvoiceDLQ(
     id = this[InvoiceDLQTable.id],
     invoiceId = this[InvoiceDLQTable.invoiceId],
-    failureReason = FailureReason.valueOf(this[failureReason])
-
+    failureReason = FailureReason.valueOf(this[failureReason]),
+    isHandled = this[InvoiceDLQTable.isHandled]
 )

@@ -10,6 +10,7 @@ import io.javalin.apibuilder.ApiBuilder.path
 import io.pleo.antaeus.core.exceptions.EntityNotFoundException
 import io.pleo.antaeus.core.services.BillingService
 import io.pleo.antaeus.core.services.CustomerService
+import io.pleo.antaeus.core.services.FailedPaymentsService
 import io.pleo.antaeus.core.services.InvoiceService
 import mu.KotlinLogging
 
@@ -19,7 +20,8 @@ private val thisFile: () -> Unit = {}
 class AntaeusRest(
     invoiceService: InvoiceService,
     customerService: CustomerService,
-    billingService: BillingService
+    billingService: BillingService,
+    failedPaymentsService: FailedPaymentsService
 ) {
 
     fun run() {
@@ -59,5 +61,6 @@ class AntaeusRest(
         CustomerRest(app, customerService)
         InvoiceRest(app, invoiceService)
         BillingRest(app, billingService)
+        InvoiceDLQRest(app, invoiceService, failedPaymentsService)
     }
 }

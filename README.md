@@ -145,9 +145,15 @@ Happy hacking 😁!
 * Day 6(16 Oct 2022) Iteration 2~ .5 hr
   * Add Quartz Job Scheduler to schedule billing job
   * Update invoice get endpoint to add a status query param to fetch invoices based on status
-  * 
+
+* Day 6(16 Oct 2022) Iteration 3 ~ 2.5 hrs
+  * Added Handlers which can handle payments that failed and take necessary action.
+  * Improved mocked external PaymentProvider to throw exceptions as well.
+  * Added job and rest endpoint to handle failed payments
+
 * Pending tasks
   * Handle case where the node died after putting all the invoices to IN_PROGRESS
-  * Send notification about the Failed invoices to the respective team so that it can be handled manually if possible
-  * Implement handlers for failures
+  * Integration tests are missing due to limited time as I am having a lot of stuff going in my current office. But We can use test containers to test the app 
+    as I have shown for testing redis locks
+  * There are some scenarios which needs business input. So, I have ignored them for now.
     

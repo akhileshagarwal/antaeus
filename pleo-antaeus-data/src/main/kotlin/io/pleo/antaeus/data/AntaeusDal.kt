@@ -36,7 +36,7 @@ class AntaeusDal(private val db: Database) {
         return transaction(db) {
             InvoiceTable
                 .select { InvoiceTable.status.eq(invoiceStatus.toString()) }
-                .limit(count, offset = 1)
+                .limit(count, offset = 0)
                 .map { it.toInvoice() }
         }
     }
@@ -83,18 +83,6 @@ class AntaeusDal(private val db: Database) {
         }
 
         return fetchInvoice(id)
-    }
-
-    fun updateInvoiceToFailedAndClearDLQ(invoice: Invoice, invoiceDLQ: InvoiceDLQ) {
-        transaction(db) {
-            // Insert the invoice and returns its new id.
-            InvoiceTable
-                .update({ InvoiceTable.id eq invoice.id }) {
-                    it[this.status] = FAILED.toString()
-                }
-            InvoiceDLQTable
-                .deleteWhere { InvoiceDLQTable.id eq invoiceDLQ.id }
-        }
     }
 
     fun updateInvoiceAndCreateInvoiceDLQ(invoice: Invoice, invoiceStatus: String, failureReason: String) {
@@ -144,17 +132,35 @@ class AntaeusDal(private val db: Database) {
      *
      * The same goes for existing logic in here.
      */
-    fun fetchInvoicesDLQ(failureReason: FailureReason): List<InvoiceDLQ>? {
+    fun fetchInvoicesDLQ(failureReason: FailureReason): List<InvoiceDLQ> {
         return InvoiceDLQTable
             .select { InvoiceDLQTable.failureReason.eq(failureReason.toString()) }
             .map { it.toInvoiceDLQ() }
     }
 
-    fun createInvoiceDLQ(invoice: Invoice, failureReason: String) {
-        InvoiceDLQTable
-            .insert {
-                it[this.invoiceId] = invoice.id
-                it[this.failureReason] = failureReason
-            }
+    fun updateInvoiceDLQIsHandled(invoiceDLQ: InvoiceDLQ, isHandled: Boolean) {
+        transaction(db) {
+            InvoiceDLQTable
+                .update({ InvoiceDLQTable.id eq invoiceDLQ.id }) {
+                    it[this.isHandled] = isHandled
+                }
+        }
+    }
+
+    fun fetchAllInvoicesDLQ(): List<InvoiceDLQ> {
+        return transaction(db) {
+            InvoiceDLQTable
+                .selectAll()
+                .map { it.toInvoiceDLQ() }
+        }
+    }
+
+    fun fetchLimitedInvoicesDLQ(count: Int): List<InvoiceDLQ> {
+        return transaction(db) {
+            InvoiceDLQTable
+                .select { InvoiceDLQTable.isHandled.eq(false) }
+                .limit(count, offset = 0)
+                .map { it.toInvoiceDLQ() }
+        }
     }
 }

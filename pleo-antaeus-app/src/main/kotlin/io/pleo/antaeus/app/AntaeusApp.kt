@@ -8,10 +8,12 @@
 package io.pleo.antaeus.app
 
 import getPaymentProvider
-import io.pleo.antaeus.core.job.BillingJobScheduler
+import io.pleo.antaeus.core.exceptions.handlers.*
+import io.pleo.antaeus.core.job.JobScheduler
 import io.pleo.antaeus.core.lock.RedisLock
 import io.pleo.antaeus.core.services.BillingService
 import io.pleo.antaeus.core.services.CustomerService
+import io.pleo.antaeus.core.services.FailedPaymentsService
 import io.pleo.antaeus.core.services.InvoiceService
 import io.pleo.antaeus.data.AntaeusDal
 import io.pleo.antaeus.data.CustomerTable
@@ -71,13 +73,18 @@ fun main() {
                                         invoiceService = invoiceService,
                                         locksHandler = redisLock)
 
-    // Schedule Billing Job
-    BillingJobScheduler(billingService).schedule()
+    //Initialize failedPaymentsService which will handle all the payments which has failed
+    val failedPaymentsService = FailedPaymentsService(listOf(CurrencyMismatchHandler(), CustomerNotFoundHandler(), InSufficientFundsHandler(),
+        NetworkFailureHandler(), UnknownFailureHandler()), invoiceService, redisLock)
+
+    // Schedule Jobs
+    JobScheduler(billingService, failedPaymentsService).schedule()
 
     // Create REST web service
     AntaeusRest(
         invoiceService = invoiceService,
         customerService = customerService,
-        billingService = billingService
+        billingService = billingService,
+        failedPaymentsService = failedPaymentsService
     ).run()
 }

@@ -51,12 +51,14 @@ class BillingService(
                         invoiceService.updateInvoiceAndCreateInvoiceDLQ(it, FAILED, INSUFFICIENT_FUNDS)
                     }
                 } catch (e: NetworkException) {
+                    // There can be a circuit breaker implementation as well which stops the job if this is happening a lot
                     log.error("Exception Occurred while contacting the PSP network", e)
                     invoiceService.updateInvoiceAndCreateInvoiceDLQ(it, FAILED, NETWORK_FAILURE)
                 } catch (e: CurrencyMismatchException) {
                     log.error("Currency Mismatch for invoice ${it.id} with customer ${it.customerId}", e)
                     invoiceService.updateInvoiceAndCreateInvoiceDLQ(it, FAILED, CURRENCY_MISMATCH)
                 } catch (e: CustomerNotFoundException) {
+                    //Maybe all the future invoices for this customer will fail as it is not Found. So, we should exclude charging invoices for this customer
                     log.error("Customer not found for invoice ${it.id} with customer ${it.customerId}", e)
                     invoiceService.updateInvoiceAndCreateInvoiceDLQ(it, FAILED, CUSTOMER_NOT_FOUND)
                 } catch (e: Exception) {
@@ -83,12 +85,5 @@ class BillingService(
 
         locksHandler.releaseLock(lockKey, lockIdentifier)
         return pendingInvoices
-    }
-
-    /**
-     * Fetches Records from DLQ and takes necessary actions based on the type of failure
-     */
-    fun retryFailedPayment() {
-
     }
 }
