@@ -137,13 +137,16 @@ Happy hacking 😁!
   * Introduce logic to acquire and release locks while fetching pending invoices.
   * In production the redis will be shared across all the antaeus nodes running in a cluster.
 
-* Day 6(16 Oct 2022) ~ 1 hr
+* Day 6(16 Oct 2022) Iteration 1 ~ 1 hr
   * Refactor Redis Lock implementation
   * Add test cases for RedisLock class
   * Introduce endpoint to initiate the settleInvoice
-  
+
+* Day 6(16 Oct 2022) Iteration 2~ .5 hr
+  * Add Quartz Job Scheduler to schedule billing job
+  * Update invoice get endpoint to add a status query param to fetch invoices based on status
+  * 
 * Pending tasks
-  * Add a Scheduler
   * Handle case where the node died after putting all the invoices to IN_PROGRESS
   * Send notification about the Failed invoices to the respective team so that it can be handled manually if possible
   * Implement handlers for failures

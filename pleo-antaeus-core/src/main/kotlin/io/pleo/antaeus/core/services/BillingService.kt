@@ -41,19 +41,23 @@ class BillingService(
             pendingInvoices.forEach {
                 try {
                     val isPaymentSuccessful = Retry.decorateCheckedSupplier(retry) {
-                        log.info { "Trying payment for invoice - ${it.id}" }
                         paymentProvider.charge(it)
                     }.apply()
                     if (isPaymentSuccessful) {
+                        log.info { "Payment successful for invoice - ${it.id}" }
                         invoiceService.updateInvoiceStatus(it, PAID)
                     } else {
+                        log.info { "Insufficient Funds for invoice - ${it.id}. Creating Entry for DLQ" }
                         invoiceService.updateInvoiceAndCreateInvoiceDLQ(it, FAILED, INSUFFICIENT_FUNDS)
                     }
                 } catch (e: NetworkException) {
+                    log.error("Exception Occurred while contacting the PSP network", e)
                     invoiceService.updateInvoiceAndCreateInvoiceDLQ(it, FAILED, NETWORK_FAILURE)
                 } catch (e: CurrencyMismatchException) {
+                    log.error("Currency Mismatch for invoice ${it.id} with customer ${it.customerId}", e)
                     invoiceService.updateInvoiceAndCreateInvoiceDLQ(it, FAILED, CURRENCY_MISMATCH)
                 } catch (e: CustomerNotFoundException) {
+                    log.error("Customer not found for invoice ${it.id} with customer ${it.customerId}", e)
                     invoiceService.updateInvoiceAndCreateInvoiceDLQ(it, FAILED, CUSTOMER_NOT_FOUND)
                 } catch (e: Exception) {
                     log.error { "Request Failed for ${it.id} due to $e" }

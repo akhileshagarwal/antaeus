@@ -8,6 +8,7 @@
 package io.pleo.antaeus.app
 
 import getPaymentProvider
+import io.pleo.antaeus.core.job.BillingJobScheduler
 import io.pleo.antaeus.core.lock.RedisLock
 import io.pleo.antaeus.core.services.BillingService
 import io.pleo.antaeus.core.services.CustomerService
@@ -70,9 +71,13 @@ fun main() {
                                         invoiceService = invoiceService,
                                         locksHandler = redisLock)
 
+    // Schedule Billing Job
+    BillingJobScheduler(billingService).schedule()
+
     // Create REST web service
     AntaeusRest(
         invoiceService = invoiceService,
-        customerService = customerService
+        customerService = customerService,
+        billingService = billingService
     ).run()
 }

@@ -6,11 +6,14 @@ import io.mockk.verify
 import io.pleo.antaeus.core.exceptions.CurrencyMismatchException
 import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
 import io.pleo.antaeus.core.exceptions.NetworkException
-import io.pleo.antaeus.core.external.PaymentProviderImpl
+import io.pleo.antaeus.core.external.PaymentProvider
 import io.pleo.antaeus.core.lock.RedisLock
-import io.pleo.antaeus.models.*
+import io.pleo.antaeus.models.Currency
 import io.pleo.antaeus.models.FailureReason.*
+import io.pleo.antaeus.models.Invoice
+import io.pleo.antaeus.models.InvoiceStatus
 import io.pleo.antaeus.models.InvoiceStatus.*
+import io.pleo.antaeus.models.Money
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -20,7 +23,7 @@ class BillingServiceTest {
     private var invoice2: Invoice = getTestInvoice(2, PENDING)
 
     private val invoiceService = mockk<InvoiceService>()
-    private val paymentProvider = mockk<PaymentProviderImpl>()
+    private val paymentProvider = mockk<PaymentProvider>()
     private val redisLock = mockk<RedisLock>()
 
     private val billingService = BillingService(paymentProvider, invoiceService, redisLock)
@@ -157,6 +160,6 @@ class BillingServiceTest {
     }
 
     private fun getTestInvoice(id:Int, invoiceStatus: InvoiceStatus): Invoice{
-        return Invoice(id, 1, Money(BigDecimal.TEN, Currency.DKK), invoiceStatus);
+        return Invoice(id, 1, Money(BigDecimal.TEN, Currency.DKK), invoiceStatus)
     }
 }
